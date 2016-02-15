@@ -17,20 +17,19 @@
  ******************************************************************************/
 package de.tudarmstadt.ukp.dkpro.examples.nameannotation;
 
-import de.tudarmstadt.ukp.dkpro.core.dictionaryannotator.DictionaryAnnotator;
-import de.tudarmstadt.ukp.dkpro.core.examples.type.Name;
-import de.tudarmstadt.ukp.dkpro.core.io.text.TextReader;
-import de.tudarmstadt.ukp.dkpro.core.testing.dumper.CasDumpWriter;
-import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
+import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
+import static org.apache.uima.fit.factory.CollectionReaderFactory.createReaderDescription;
+
+import java.io.IOException;
+
 import org.apache.uima.UIMAException;
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.collection.CollectionReaderDescription;
 import org.apache.uima.fit.pipeline.SimplePipeline;
 
-import java.io.IOException;
-
-import static org.apache.uima.fit.factory.AnalysisEngineFactory.createEngineDescription;
-import static org.apache.uima.fit.factory.CollectionReaderFactory.createReaderDescription;
+import de.tudarmstadt.ukp.dkpro.core.dictionaryannotator.DictionaryAnnotator;
+import de.tudarmstadt.ukp.dkpro.core.examples.type.Name;
+import de.tudarmstadt.ukp.dkpro.core.tokit.BreakIteratorSegmenter;
 
 /**
  * This pipeline uses the custom annotation type {@link Name} to annotate names in the input text.
@@ -43,14 +42,14 @@ import static org.apache.uima.fit.factory.CollectionReaderFactory.createReaderDe
  */
 public class NameAnnotationPipeline
 {
-    public static void main(String[] args)
+    public static void main(final String[] args)
             throws IOException, UIMAException
     {
         CollectionReaderDescription reader = createReaderDescription(
-                TextReader.class,
-                TextReader.PARAM_SOURCE_LOCATION, "src/main/resources/namedEntitiesTexts",
-                TextReader.PARAM_PATTERNS, "[+]*.txt",
-                TextReader.PARAM_LANGUAGE, "en");
+                TikaReader.class,
+                TikaReader.PARAM_SOURCE_LOCATION, "src/main/resources/namedEntitiesTexts",
+                TikaReader.PARAM_PATTERNS, "*",
+                TikaReader.PARAM_LANGUAGE, "en");
 
         AnalysisEngineDescription tokenizer = createEngineDescription(
                 BreakIteratorSegmenter.class);
@@ -61,9 +60,7 @@ public class NameAnnotationPipeline
                 "src/main/resources/dictionaries/names.txt",
                 DictionaryAnnotator.PARAM_ANNOTATION_TYPE, Name.class);
 
-        AnalysisEngineDescription writer = createEngineDescription(
-                CasDumpWriter.class,
-                CasDumpWriter.PARAM_TARGET_LOCATION, "target/NameAnnotationPipeline.txt");
+        AnalysisEngineDescription writer = createEngineDescription(NameWriter.class);
 
         SimplePipeline.runPipeline(reader, tokenizer, nameFinder, writer);
     }
